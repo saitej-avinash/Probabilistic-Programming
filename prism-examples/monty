@@ -1,0 +1,45 @@
+dtmc
+
+module monty
+
+  phase          : [0..5] init 0;
+  prize_door     : [1..3] init 1;
+  player_choice  : [1..3] init 1;
+  revealed_door  : [0..3] init 0;
+  strategy       : [0..1] init 1;  // 0 = stay, 1 = switch
+  win            : [0..1] init 0;
+
+  // Phase 0: Sample prize_door
+  [] phase=0 -> 1/3 : (prize_door'=1) & (phase'=1)
+             + 1/3 : (prize_door'=2) & (phase'=1)
+             + 1/3 : (prize_door'=3) & (phase'=1);
+
+  // Phase 1: Sample player_choice
+  [] phase=1 -> 1/3 : (player_choice'=1) & (phase'=2)
+             + 1/3 : (player_choice'=2) & (phase'=2)
+             + 1/3 : (player_choice'=3) & (phase'=2);
+
+  // Phase 2: Reveal a goat door (host never opens player's or prize door)
+  [] phase=2 & player_choice=1 & prize_door=2 -> (revealed_door'=3) & (phase'=3);
+  [] phase=2 & player_choice=1 & prize_door=3 -> (revealed_door'=2) & (phase'=3);
+  [] phase=2 & player_choice=2 & prize_door=1 -> (revealed_door'=3) & (phase'=3);
+  [] phase=2 & player_choice=2 & prize_door=3 -> (revealed_door'=1) & (phase'=3);
+  [] phase=2 & player_choice=3 & prize_door=1 -> (revealed_door'=2) & (phase'=3);
+  [] phase=2 & player_choice=3 & prize_door=2 -> (revealed_door'=1) & (phase'=3);
+
+  // Phase 3: Switch if strategy = 1
+  [] phase=3 & strategy=0 -> (phase'=4); // stay
+  [] phase=3 & strategy=1 & revealed_door=1 & player_choice=2 -> (player_choice'=3) & (phase'=4);
+  [] phase=3 & strategy=1 & revealed_door=1 & player_choice=3 -> (player_choice'=2) & (phase'=4);
+  [] phase=3 & strategy=1 & revealed_door=2 & player_choice=1 -> (player_choice'=3) & (phase'=4);
+  [] phase=3 & strategy=1 & revealed_door=2 & player_choice=3 -> (player_choice'=1) & (phase'=4);
+  [] phase=3 & strategy=1 & revealed_door=3 & player_choice=1 -> (player_choice'=2) & (phase'=4);
+  [] phase=3 & strategy=1 & revealed_door=3 & player_choice=2 -> (player_choice'=1) & (phase'=4);
+
+  // Phase 4: Set win
+  [] phase=4 & player_choice=prize_door -> (win'=1) & (phase'=5);
+  [] phase=4 & player_choice!=prize_door -> (win'=0) & (phase'=5);
+
+endmodule
+
+label "win" = win=1;

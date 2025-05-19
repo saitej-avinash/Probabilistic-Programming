@@ -27,6 +27,10 @@ Probabilistic-Programming/
 │   ├── branchprob.py
 │   ├── pathprob.py
 │   └── findpctl.txt
+|── prism-examples/
+│   ├── frevalds algorithm
+│   ├── pi estimation algorithm
+│   └── monty hall example
 │
 └── README.md
 ```
@@ -57,6 +61,8 @@ Core logic for computing probabilities of branching paths:
 
 - `branchprob.py`: Computes probabilities across program branches.
 - `pathprob.py`: Symbolic execution with probabilistic estimates.
+
+- `pathprob_fix_domain.py`: Please run this code for examples.
 
 ---
 

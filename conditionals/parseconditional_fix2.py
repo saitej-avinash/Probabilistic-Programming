@@ -164,7 +164,7 @@ example_code = """def monty_hall(choice, door_switch):
             if choice == 1 :
                 choice = 2
             else : 
-                choice = 10
+                choice = 1
 
     
     if choice == car_door :
@@ -181,6 +181,15 @@ if x>1:
 if x>3:
     return 0"""
 
+
+example_code9 = """
+ 
+if x <=y :
+    return 1
+else : 
+    return 0
+
+"""
 example_code8 = """
 
 x = sample_uniform(1, 6)
@@ -205,10 +214,79 @@ else :
     return 2
 """
 
+
+example_code10 = """
+
+def freivalds():
+    r0 = sample_uniform(0, 1)
+    r1 = sample_uniform(0, 1)
+
+    # Hardcoded incorrect matrices: A @ B ≠ C
+    A = [[2, 3], [3, 4]]
+    B = [[1, 0], [1, 2]]
+    C = [[6, 5], [8, 8]]  # C is incorrect
+
+    # Compute B @ r
+    Br0 = 1 * r0 + 0 * r1
+    Br1 = 1 * r0 + 2 * r1
+
+    # A @ (B @ r)
+    ABr0 = 2 * Br0 + 3 * Br1
+    ABr1 = 3 * Br0 + 4 * Br1
+
+    # C @ r
+    Cr0 = 6 * r0 + 5 * r1
+    Cr1 = 8 * r0 + 8 * r1
+
+    # Check if Freivalds returns True
+    if ABr0 == Cr0 and ABr1 == Cr1:
+        return True
+    else:
+        return False
+
+
+"""
+
+
+example_code11 = """
+
+if choice != 1 and car_door != 1:
+        
+    if choice == 2:
+                
+        if car_door == 3 : 
+            return 1
+    else :
+                 
+        if car_door == 2 : 
+            return 1
+
+elif choice != 2 and car_door != 2:
+        
+    if choice == 1 :
+                
+        if car_door == 3 : 
+            return 1
+    else: 
+                
+        if car_door == 1 : 
+            return 1
+
+elif choice != 3 and car_door !=3:
+        
+    if choice == 1 :
+                
+        if car_door == 2 : 
+            return 1
+    else : 
+                
+        if car_door == 1 : 
+            return 1
+"""
 # Build the condition tree
 
 builder = ConditionTreeBuilder()
-condition_tree = builder.build_tree(example_code8)
+condition_tree = builder.build_tree(example_code11)
 
 # Print the condition tree
 #print("Condition Tree:")

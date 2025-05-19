@@ -1,0 +1,71 @@
+dtmc
+
+module freivalds
+
+    // Phase control: 0 = trial1 sample, 1 = trial1 compute, 2 = trial1 check,
+    // 3 = trial2 sample, 4 = trial2 compute, 5 = trial2 check, 6 = done
+    phase : [0..6] init 0;
+
+    // Trial 1 random vector
+    r0_1 : [0..1] init 0;
+    r1_1 : [0..1] init 0;
+
+    // Trial 2 random vector
+    r0_2 : [0..1] init 0;
+    r1_2 : [0..1] init 0;
+
+    // A*(B*r) and C*r values (trial 1)
+    axbr0_1 : [0..20] init 0;
+    axbr1_1 : [0..20] init 0;
+    cr0_1   : [0..20] init 0;
+    cr1_1   : [0..20] init 0;
+
+    // A*(B*r) and C*r values (trial 2)
+    axbr0_2 : [0..20] init 0;
+    axbr1_2 : [0..20] init 0;
+    cr0_2   : [0..20] init 0;
+    cr1_2   : [0..20] init 0;
+
+    // Results of individual Freivald runs
+    result1 : [0..1] init 0;
+    result2 : [0..1] init 0;
+
+    // Step 1: Trial 1 sample r
+    [] phase=0 ->
+        0.25 : (r0_1'=0) & (r1_1'=0) & (phase'=1) +
+        0.25 : (r0_1'=0) & (r1_1'=1) & (phase'=1) +
+        0.25 : (r0_1'=1) & (r1_1'=0) & (phase'=1) +
+        0.25 : (r0_1'=1) & (r1_1'=1) & (phase'=1);
+
+    // Step 2: Trial 1 compute
+    [] phase=1 ->
+        (axbr0_1'=1*r0_1 + 2*r1_1) &
+        (axbr1_1'=3*r0_1 + 4*r1_1) &
+        (cr0_1'=1*r0_1 + 2*r1_1) &
+        (cr1_1'=1*r0_1 + 4*r1_1) &
+        (phase'=2);
+
+    // Step 3: Trial 1 compare
+    [] phase=2 ->
+        (result1'=(axbr0_1=cr0_1 & axbr1_1=cr1_1 ? 1 : 0)) & (phase'=3);
+
+    // Step 4: Trial 2 sample r
+    [] phase=3 ->
+        0.25 : (r0_2'=0) & (r1_2'=0) & (phase'=4) +
+        0.25 : (r0_2'=0) & (r1_2'=1) & (phase'=4) +
+        0.25 : (r0_2'=1) & (r1_2'=0) & (phase'=4) +
+        0.25 : (r0_2'=1) & (r1_2'=1) & (phase'=4);
+
+    // Step 5: Trial 2 compute
+    [] phase=4 ->
+        (axbr0_2'=1*r0_2 + 2*r1_2) &
+        (axbr1_2'=3*r0_2 + 4*r1_2) &
+        (cr0_2'=1*r0_2 + 2*r1_2) &
+        (cr1_2'=1*r0_2 + 4*r1_2) &
+        (phase'=5);
+
+    // Step 6: Trial 2 compare
+    [] phase=5 ->
+        (result2'=(axbr0_2=cr0_2 & axbr1_2=cr1_2 ? 1 : 0)) & (phase'=6);
+
+endmodule

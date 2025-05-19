@@ -1,0 +1,19 @@
+dtmc
+
+const int N = 315;
+const int Rr = 315;
+
+module sampler
+    x : [0..N-1] init 0;
+    y : [0..N-1] init 0;
+    done : bool init false;
+
+    // Step through grid: like nested loops
+    [] !done & x < N-1 -> (x' = x + 1);
+    [] !done & x = N-1 & y < N-1 -> (x' = 0) & (y' = y + 1);
+    [] !done & x = N-1 & y = N-1 -> (done' = true);
+endmodule
+
+rewards "inside_count"
+    !done & x*x + y*y <= Rr*Rr : 1;
+endrewards

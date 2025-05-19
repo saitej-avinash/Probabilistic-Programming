@@ -29,10 +29,10 @@ def isProduct(a, b, c, k):
     return True
 
 # Driver code
-a = [[1, 1], [1, 1]]
-b = [[1, 1], [1, 1]]
-c = [[1, 2], [2, 2]]  # Incorrect product
-k = 2
+a = [[1, 2], [3, 4]]
+b = [[1, 0], [0, 1]]
+c = [[1, 2], [1, 4]]  # Incorrect product
+k = 1
 count = 0
 x = 1000  # Number of trials
 
