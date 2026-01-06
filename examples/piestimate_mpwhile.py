@@ -2,19 +2,14 @@ import random
 
 
 def monte_carlo_pi_probability(num_points):
-    
+
     inside_circle = 0
 
     for _ in range(num_points):
         x = random.randint(0,315)
         y = random.randint(0,315)
         
-        if x**2 + y**2 <= 315*315 :
-            is_inside = True
-        else:
-            is_inside = False
-
-        if is_inside:
+        if x**2 + y**2 <= 315*315 : 
             inside_circle += 1
 
 

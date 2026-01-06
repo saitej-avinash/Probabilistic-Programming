@@ -1,0 +1,2 @@
+Result
+Error: Probabilities in command 1 of module "paths_embedded" sum to more than one (e.g. 1.000000000010584) for some states. Perhaps the guard needs to be strengthened (line 7, column 3).

@@ -49,7 +49,15 @@ def check3():
             if z > 1 :
                 return 1
 
+def randminoftwo():
+    x = ran.randint(1,10)
+    y= ran.randint(1,10)
 
+    if x<y :
+        return 1
+    else :
+        return 0
+    
 
 def check4(): 
     x =ran.randint(1,3)
@@ -64,12 +72,63 @@ def check4():
         return 1
     return 0
 
+def chekc():
+
+    x = ran.randint(0,9)
+
+    if x < 4 : 
+        return 1
+
+def randminoftwo():
+    x = ran.randint(1,10)
+    y= ran.randint(1,10)
+
+    if x<y :
+        return 1
+    else :
+        return 0
+    
+def randmaxoftwo():
+    x = ran.randint(1,10)
+    y= ran.randint(1,10)
+
+    if x>y :
+        return 1
+    else :
+        return 0
+    
+def randeqloftwo():
+    x = ran.randint(1,10)
+    y= ran.randint(1,10)
+
+    if x==y :
+        return 1
+    else :
+        return 0
+    
 
  
-z = 100000  # Number of trials
+z = 1000  # Number of trials
 for _ in range(z):
-    if check4():
+    if randminoftwo():
         count += 1
 
 probability = (count / z) * 100
 print(f"Probability of x < y: {probability:.2f}%")
+
+count = 0
+for _ in range(z):
+    if randmaxoftwo():
+        count += 1
+
+probability = (count / z) * 100
+print(f"Probability of x > y: {probability:.2f}%")
+
+count = 0
+for _ in range(z):
+    if randeqloftwo():
+        count += 1
+
+probability = (count / z) * 100
+print(f"Probability of x == y: {probability:.2f}%")
+ 

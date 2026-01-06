@@ -2,7 +2,7 @@ import math
 
 def birthday_probability(k):
     # Total days in a year (ignoring leap years)
-    days_in_year = 365
+    days_in_year = 7
     
     # If the group size is too large, the probability of shared birthday is 100%
     if k > days_in_year:
@@ -19,5 +19,5 @@ def birthday_probability(k):
     return probability_shared
 
 # Example usage
-k = 20
+k = 4
 print(f"Probability that at least two people share a birthday in a group of {k} people: {birthday_probability(k):.4f}")

@@ -30,30 +30,28 @@ class ConditionTreeBuilder(ast.NodeVisitor):
     def __init__(self):
         self.root = None
         self.current = None
-        self.last_top_level_if = None # CHANGE 1: New tracker for sequential IFs
+        self.last_top_level_if = None  # tracker for sequential IFs
 
     def visit_If(self, node):
         # 1. Create a new condition node
         condition = ast.unparse(node.test)
         condition_node = ConditionNode(condition=condition)
 
-        # 2. Link the node - CHANGE 2: Correct logic for sequential vs. nested IFs
+        # 2. Link the node: sequential vs nested IFs
         if self.current is None:
-            # We are at the *top level*
+            # Top level
             if self.root is None:
-                # First IF statement in the program
                 self.root = condition_node
                 self.last_top_level_if = condition_node
             else:
-                # Sequential IF statement: Link it to the last top-level IF
+                # Sequential top-level IF
                 self.last_top_level_if.next_condition = condition_node
                 self.last_top_level_if = condition_node
         else:
-            # We are inside a branch (nested condition). 
+            # Inside a branch (nested)
             if not self.root:
                 self.root = condition_node
-            
-        
+
         # Store the current node as the parent for the next level of nesting
         parent = self.current
         self.current = condition_node
@@ -75,10 +73,9 @@ class ConditionTreeBuilder(ast.NodeVisitor):
                     false_branch_builder.visit(stmt)
                 else:
                     condition_node.false_statements.append(ast.unparse(stmt))
-        
-        # FIX 3: Implicit Else Handling
-        elif not node.orelse: 
-            condition_node.false_statements.append("pass")  # Represents implicit execution
+        else:
+            # Implicit else (do nothing)
+            condition_node.false_statements.append("pass")
 
         condition_node.false_branch = false_branch_builder.root
 
@@ -95,15 +92,16 @@ class ConditionTreeBuilder(ast.NodeVisitor):
         self.visit(tree)
         return self.root
 
+
 def check_for_return(statements):
-    """Simple check to see if a list of statements contains a 'return'."""
-    return any(stmt.startswith('return') for stmt in statements)
+    """Check if a list of statements contains a 'return'."""
+    return any(stmt.strip().startswith('return') for stmt in statements)
+
 
 def extract_paths(node, current_path=None, all_paths=None):
     """
     Recursively extract all paths from the condition tree.
-    This corrected version ensures paths continue through next_condition 
-    only if a 'return' statement was not hit.
+    Continue through next_condition only if a 'return' was not hit.
     """
     if current_path is None:
         current_path = []
@@ -115,32 +113,30 @@ def extract_paths(node, current_path=None, all_paths=None):
 
     # --- TRUE Branch Traversal ---
     true_path = current_path + [(node.condition, "True")]
-    true_statements_contain_return = False
-    
+    true_has_return = False
+
     if node.true_statements:
-        true_statements_contain_return = check_for_return(node.true_statements)
+        true_has_return = check_for_return(node.true_statements)
         true_path.append(("Statements", node.true_statements))
-    
+
     if node.true_branch:
         extract_paths(node.true_branch, true_path, all_paths)
-    elif node.next_condition and not true_statements_contain_return:
-        # Continue to sequential condition if no return was hit
+    elif node.next_condition and not true_has_return:
         extract_paths(node.next_condition, true_path, all_paths)
     else:
         all_paths.append(true_path)
 
     # --- FALSE Branch Traversal ---
     false_path = current_path + [(node.condition, "False")]
-    false_statements_contain_return = False
-    
+    false_has_return = False
+
     if node.false_statements:
-        false_statements_contain_return = check_for_return(node.false_statements)
+        false_has_return = check_for_return(node.false_statements)
         false_path.append(("Statements", node.false_statements))
-        
+
     if node.false_branch:
         extract_paths(node.false_branch, false_path, all_paths)
-    elif node.next_condition and not false_statements_contain_return:
-        # Continue to sequential condition if no return was hit
+    elif node.next_condition and not false_has_return:
         extract_paths(node.next_condition, false_path, all_paths)
     else:
         all_paths.append(false_path)
@@ -160,38 +156,31 @@ class ProbabilityCalculator:
     def evaluate_condition(self, condition, case):
         local_env = {var: val for var, val in zip(self.variables, case)}
         try:
-            return eval(condition, {}, local_env)
-        except:
+            return bool(eval(condition, {}, local_env))
+        except Exception:
             return False
 
     def count_valid_cases(self, condition, condition_filter=None):
         count = 0
         total = 0
-        
         for case in product(*[self.domain[var] for var in self.variables]):
-            if condition_filter:
-                if not self.evaluate_condition(condition_filter, case):
-                    continue
-            
-            total += 1 
-            
+            if condition_filter and not self.evaluate_condition(condition_filter, case):
+                continue
+            total += 1
             if self.evaluate_condition(condition, case):
                 count += 1
-                
         return count, total
 
     def compute_probability(self, condition):
         total_domain_size = 1
         for var in self.variables:
             total_domain_size *= len(self.domain[var])
-        
         count, _ = self.count_valid_cases(condition)
-
-        return count / total_domain_size if total_domain_size else 0
+        return count / total_domain_size if total_domain_size else 0.0
 
     def compute_conditional_probability(self, condition, given_condition):
         count, total = self.count_valid_cases(condition, condition_filter=given_condition)
-        return count / total if total else 0
+        return count / total if total else 0.0
 
     def calculate_path_probabilities(self, paths):
         path_probabilities = {}
@@ -201,32 +190,30 @@ class ProbabilityCalculator:
 
             for segment in path:
                 if segment[0] == 'Statements':
-                    # FIX: Continue to skip statement segments but maintain chain integrity
-                    continue 
+                    # Do not alter probability on statement segments
+                    continue
 
                 condition, outcome = segment
-                
                 if outcome == 'True':
                     condition_str = condition
                 elif outcome == 'False':
-                    # Use parentheses for correct negation evaluation
                     condition_str = f"not ({condition})"
                 else:
                     continue
 
                 if not previous_conditions:
-                    # Non-conditional probability P(C1)
                     branch_probability = self.compute_probability(condition_str)
                 else:
-                    # Conditional probability P(C_n | C_1 AND ... AND C_{n-1})
                     given_condition_str = " and ".join(previous_conditions)
                     branch_probability = self.compute_conditional_probability(condition_str, given_condition_str)
 
-                # Chain the probabilities
                 probability *= branch_probability
+                # (optional) clamp tiny negatives due to float noise
+                if probability < 0 and abs(probability) < 1e-15:
+                    probability = 0.0
+
                 previous_conditions.append(condition_str)
 
-            # Use the full path tuple as the key
             key = tuple((cond, tuple(outcome) if isinstance(outcome, list) else outcome) for cond, outcome in path)
             path_probabilities[key] = probability
 
@@ -234,35 +221,30 @@ class ProbabilityCalculator:
 
 
 # ====================================================================
-# TEST RUN
-# ====================================================================
-
-# ====================================================================
 # 3. FreivaldsAutomation Module (Generator and Calculator)
 # ====================================================================
 
-def generate_freivalds_code(A, B, C, N):
+def generate_freivalds_code(A, B, C, N, MOD=2):
     """
     Generates the conditional code string for a SINGLE run (k=1) of 
-    Freivald's algorithm using symbolic variables r_0, r_1, ..., r_{N-1}.
+    Freivald's algorithm using symbolic variables r_0, r_1, ..., r_{N-1},
+    with arithmetic performed modulo MOD.
     """
-    
-    A_np = np.array(A)
-    B_np = np.array(B)
-    C_np = np.array(C)
-    
-    D_np = A_np @ B_np - C_np
-    
+    A_np = np.array(A, dtype=int)
+    B_np = np.array(B, dtype=int)
+    C_np = np.array(C, dtype=int)
+
+    D_np = A_np @ B_np - C_np  # integer D = AB - C
+
     conditional_blocks = []
-    
+
     # Iterate through the N components of the Dr vector
     for i in range(N):
         terms = []
         for j in range(N):
-            coeff = D_np[i, j]
-            r_var = f"r_{j}" 
-            
+            coeff = int(D_np[i, j])
             if coeff != 0:
+                r_var = f"r_{j}"
                 if coeff == 1:
                     term = r_var
                 elif coeff == -1:
@@ -271,107 +253,105 @@ def generate_freivalds_code(A, B, C, N):
                     term = f"{coeff}*{r_var}"
                 terms.append(term)
 
+        # Linear combo for row i
         if not terms:
             expression = "0"
         else:
             expression = " + ".join(terms).replace("+ -", "- ")
-        
-        # The condition is Dr[i] != 0
-        condition = f"{expression} != 0"
+
+        # --- KEY: Test modulo MOD ---
+        # Reject if ((row · r) % MOD) != 0; accept only if ALL rows == 0 mod MOD.
+        condition = f"(({expression}) % {MOD}) != 0"
         conditional_blocks.append(condition)
 
     # Assemble the final code string (if-elif-else chain)
     code_lines = []
-    
-    # First condition uses 'if'
     if conditional_blocks:
         code_lines.append(f"if {conditional_blocks[0]}:")
         code_lines.append("    return False")
-    
-    # Subsequent conditions use 'elif'
-    for condition in conditional_blocks[1:]:
-        code_lines.append(f"elif {condition}:")
-        code_lines.append("    return False")
+        for condition in conditional_blocks[1:]:
+            code_lines.append(f"elif {condition}:")
+            code_lines.append("    return False")
 
-    # Final 'else' returns True 
     code_lines.append("else:")
     code_lines.append("    return True")
-    
+
     variables = [f"r_{j}" for j in range(N)]
     return "\n".join(code_lines), variables
 
-def calculate_freivalds_k_prob(A, B, C, N, K):
+
+def calculate_freivalds_k_prob(A, B, C, N, K, MOD=2):
     """
     Calculates the final False Positive probability for K independent runs 
-    by analyzing the single-run (k=1) code.
+    by analyzing the single-run (k=1) code (modular arithmetic with MOD).
     """
     # 1. Generate the K=1 code string
-    freivald_k1_code, variables = generate_freivalds_code(A, B, C, N)
-    
-    # 2. Define the domain for K=1 variables (r_0, r_1, ...)
+    freivald_k1_code, variables = generate_freivalds_code(A, B, C, N, MOD=MOD)
+
+    # 2. Domain for r_j (0/1)
     domain = {var: [0, 1] for var in variables}
-    
+
     # 3. Build Tree and Extract Paths for K=1
     builder = ConditionTreeBuilder()
     condition_tree = builder.build_tree(freivald_k1_code)
     extracted_paths = extract_paths(condition_tree)
-    
+
     # 4. Calculate Path Probabilities for K=1
     calculator = ProbabilityCalculator(variables, domain)
     path_probabilities = calculator.calculate_path_probabilities(extracted_paths)
 
-    for path, prob in path_probabilities.items():
-        print(f"Path: {path}")
-        print(f"Probability: {prob:.6f}\n")
-
-    
-    # 5. Find P_FP_1 (Probability of False Positive for a single run)
+    # 5. Sum ALL paths that contain 'return True' in any Statements segment
     p_fp_1 = 0.0
     for path, prob in path_probabilities.items():
-        # Check if the last statement of the path is 'return True'
-        if path[-1][0] == 'Statements' and path[-1][1] == ('return True',):
-            p_fp_1 = prob
-            break
-            
-    # 6. Calculate Final Probability for K runs
+        for node, payload in path:
+            if node == 'Statements':
+                payload_tuple = payload if isinstance(payload, (list, tuple)) else [payload]
+                if any(stmt.strip() == 'return True' for stmt in payload_tuple):
+                    p_fp_1 += prob
+                    break  # avoid double-counting this path
+
+    # 6. K runs (independent)
     p_fp_k = p_fp_1 ** K
-    
     results = {
         "k1_code": freivald_k1_code,
         "p_fp_1": p_fp_1,
         "k_runs": K,
         "p_fp_k": p_fp_k,
-        "p_cr_k": 1.0 - p_fp_k  # Correct Rejection probability
+        "p_cr_k": 1.0 - p_fp_k,
+        "modulus": MOD,
     }
-    
     return results
+
 
 # ====================================================================
 # DRIVER CODE (Test with User's Matrices)
 # ====================================================================
 
-# Input Parameters
-A = [[1, 2], [3, 4]]
-B = [[1, 0], [0, 1]]
-C = [[1, 2], [1, 4]]  # Incorrect product
-N = 2                 # Matrix Dimension
-K = 2                 # Number of Freivald runs to simulate
+if __name__ == "__main__":
+    # Input Parameters
+    A = [[1, 2], [3, 4]]
+    B = [[1, 1], [1, 1]]
+    C = [[1, 2], [1, 4]]  # Incorrect product
+    N = 2                 # Matrix Dimension
+    K = 3                 # Number of Freivalds runs to simulate
+    MOD = 2               # arithmetic over F_2 for classic Freivalds
 
-# Calculate and print results
-results = calculate_freivalds_k_prob(A, B, C, N, K)
+    # Calculate and print results
+    results = calculate_freivalds_k_prob(A, B, C, N, K, MOD=MOD)
 
-print("--- Freivald's Algorithm Automated Analysis ---")
-print(f"Input Matrices: A({N}x{N}) * B({N}x{N}) vs C({N}x{N})")
-print(f"Number of Independent Runs (K): {results['k_runs']}")
-print("-" * 40)
+    print("--- Freivald's Algorithm Automated Analysis ---")
+    print(f"Input Matrices: A({N}x{N}) * B({N}x{N}) vs C({N}x{N})")
+    print(f"Modulus (field): {results['modulus']}")
+    print(f"Number of Independent Runs (K): {results['k_runs']}")
+    print("-" * 40)
 
-print("\n[STEP 1: K=1 Conditional Code Generated]")
-print(results['k1_code'])
+    print("\n[STEP 1: K=1 Conditional Code Generated]")
+    print(results['k1_code'])
 
-print("\n[STEP 2: Single Run Probability Analysis]")
-print(f"P(False Positive | k=1): {results['p_fp_1']:.6f}")
-print(f"P(Correct Rejection | k=1): {1.0 - results['p_fp_1']:.6f}")
+    print("\n[STEP 2: Single Run Probability Analysis]")
+    print(f"P(False Positive | k=1): {results['p_fp_1']:.6f}")
+    print(f"P(Correct Rejection | k=1): {1.0 - results['p_fp_1']:.6f}")
 
-print("\n[STEP 3: Final K-Run Probability Calculation]")
-print(f"P(Total False Positive | K={K}): P(FP|k=1)^K = ({results['p_fp_1']:.3f})^{K} = {results['p_fp_k']:.6f}")
-print(f"P(Total Correct Rejection | K={K}): 1 - P(FP|K) = {results['p_cr_k']:.6f}")
+    print("\n[STEP 3: Final K-Run Probability Calculation]")
+    print(f"P(Total False Positive | K={K}): P(FP|k=1)^K = ({results['p_fp_1']:.3f})^{K} = {results['p_fp_k']:.6f}")
+    print(f"P(Total Correct Rejection | K={K}): 1 - P(FP|K) = {results['p_cr_k']:.6f}")

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Paradox - Symbolic Condition Tree</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <svg width="1000" height="750" viewBox="0 0 1000 750">
+            <!-- Title -->
+            <text x="500" y="30" text-anchor="middle" font-size="18" font-weight="bold" fill="#000">
+                Symbolic Condition Tree for Birthday Paradox (K=4)
+            </text>
+            
+            <!-- Root node - first condition -->
+            <rect x="460" y="60" width="80" height="40" rx="3" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="500" y="75" text-anchor="middle" font-size="11" fill="#000" font-weight="bold">
+                b₁ = b₀?
+            </text>
+            <text x="500" y="90" text-anchor="middle" font-size="9" fill="#000">
+                (first pair)
+            </text>
+            
+            <!-- First level branches -->
+            <line x1="480" y1="100" x2="250" y2="150" stroke="#000" stroke-width="1.5"/>
+            <text x="340" y="120" font-size="10" font-weight="bold" fill="#000">True</text>
+            
+            <line x1="520" y1="100" x2="750" y2="150" stroke="#000" stroke-width="1.5"/>
+            <text x="660" y="120" font-size="10" font-weight="bold" fill="#000">False</text>
+            
+            <!-- Left leaf - first collision -->
+            <ellipse cx="250" cy="175" rx="55" ry="35" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="250" y="168" text-anchor="middle" font-size="12" fill="#000" font-weight="bold">
+                WIN
+            </text>
+            <text x="250" y="182" text-anchor="middle" font-size="9" fill="#000">
+                collision at (1,0)
+            </text>
+            <text x="250" y="196" text-anchor="middle" font-size="10" fill="#000" font-weight="bold">
+                P = 1/N
+            </text>
+            
+            <!-- Second condition node -->
+            <rect x="710" y="155" width="80" height="40" rx="3" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="750" y="170" text-anchor="middle" font-size="11" fill="#000" font-weight="bold">
+                b₂ = b₀?
+            </text>
+            <text x="750" y="185" text-anchor="middle" font-size="9" fill="#000">
+                (given b₁≠b₀)
+            </text>
+            
+            <!-- Second level branches -->
+            <line x1="730" y1="195" x2="550" y2="245" stroke="#000" stroke-width="1.5"/>
+            <text x="620" y="215" font-size="10" font-weight="bold" fill="#000">True</text>
+            
+            <line x1="770" y1="195" x2="850" y2="245" stroke="#000" stroke-width="1.5"/>
+            <text x="830" y="215" font-size="10" font-weight="bold" fill="#000">False</text>
+            
+            <!-- Second collision leaf -->
+            <ellipse cx="550" cy="270" rx="55" ry="35" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="550" y="263" text-anchor="middle" font-size="12" fill="#000" font-weight="bold">
+                WIN
+            </text>
+            <text x="550" y="277" text-anchor="middle" font-size="9" fill="#000">
+                collision at (2,0)
+            </text>
+            <text x="550" y="291" text-anchor="middle" font-size="9" fill="#000" font-weight="bold">
+                P = (1-1/N)·(1/N)
+            </text>
+            
+            <!-- Third condition node -->
+            <rect x="810" y="250" width="80" height="40" rx="3" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="850" y="265" text-anchor="middle" font-size="11" fill="#000" font-weight="bold">
+                b₂ = b₁?
+            </text>
+            <text x="850" y="280" text-anchor="middle" font-size="9" fill="#000">
+                (b₁≠b₀, b₂≠b₀)
+            </text>
+            
+            <!-- Third level branches -->
+            <line x1="830" y1="290" x2="730" y2="340" stroke="#000" stroke-width="1.5"/>
+            <text x="760" y="310" font-size="10" font-weight="bold" fill="#000">True</text>
+            
+            <line x1="870" y1="290" x2="900" y2="340" stroke="#000" stroke-width="1.5"/>
+            <text x="905" y="310" font-size="10" font-weight="bold" fill="#000">False</text>
+            
+            <!-- Third collision leaf -->
+            <ellipse cx="730" cy="365" rx="55" ry="35" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="730" y="358" text-anchor="middle" font-size="12" fill="#000" font-weight="bold">
+                WIN
+            </text>
+            <text x="730" y="372" text-anchor="middle" font-size="9" fill="#000">
+                collision at (2,1)
+            </text>
+            <text x="730" y="386" text-anchor="middle" font-size="9" fill="#000" font-weight="bold">
+                P = (1-1/N)·(1/N)
+            </text>
+            
+            <!-- Fourth condition node -->
+            <rect x="860" y="345" width="80" height="40" rx="3" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="900" y="360" text-anchor="middle" font-size="11" fill="#000" font-weight="bold">
+                b₃ = b₀?
+            </text>
+            <text x="900" y="375" text-anchor="middle" font-size="8" fill="#000">
+                (3 distinct so far)
+            </text>
+            
+            <!-- Continuation indicator -->
+            <text x="900" y="420" text-anchor="middle" font-size="14" fill="#000" font-weight="bold">
+                ⋮
+            </text>
+            <text x="900" y="440" text-anchor="middle" font-size="10" fill="#000" font-style="italic">
+                (3 more checks)
+            </text>
+            
+            <!-- Final branches -->
+            <line x1="880" y1="460" x2="780" y2="510" stroke="#000" stroke-width="1.5" stroke-dasharray="4,4"/>
+            <line x1="920" y1="460" x2="900" y2="510" stroke="#000" stroke-width="1.5" stroke-dasharray="4,4"/>
+            
+            <!-- More collision leaves (partial) -->
+            <ellipse cx="780" cy="535" rx="50" ry="30" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="780" y="532" text-anchor="middle" font-size="11" fill="#000" font-weight="bold">
+                WIN
+            </text>
+            <text x="780" y="546" text-anchor="middle" font-size="8" fill="#000">
+                (b₃ matches)
+            </text>
+            
+            <!-- Final LOSE leaf -->
+            <ellipse cx="900" cy="580" rx="55" ry="35" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="900" y="573" text-anchor="middle" font-size="12" fill="#000" font-weight="bold">
+                LOSE
+            </text>
+            <text x="900" y="587" text-anchor="middle" font-size="9" fill="#000">
+                all distinct
+            </text>
+            <text x="900" y="601" text-anchor="middle" font-size="9" fill="#000" font-weight="bold">
+                P = ∏(1-i/N)
+            </text>
+            
+            <!-- Variable legend box -->
+            <rect x="10" y="60" width="180" height="140" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="100" y="80" text-anchor="middle" font-size="12" fill="#000" font-weight="bold">
+                Parameters
+            </text>
+            <text x="20" y="100" font-size="10" fill="#000">
+                K = 4 people
+            </text>
+            <text x="20" y="118" font-size="10" fill="#000">
+                N = 365 days
+            </text>
+            <text x="20" y="136" font-size="10" fill="#000">
+                bᵢ ~ Uniform{0,...,364}
+            </text>
+            <text x="20" y="154" font-size="10" fill="#000" font-weight="bold">
+                Paths: (K choose 2) + 1
+            </text>
+            <text x="20" y="172" font-size="10" fill="#000">
+                = 6 + 1 = 7 total
+            </text>
+            <text x="20" y="190" font-size="10" fill="#000">
+                (6 WIN, 1 LOSE)
+            </text>
+            
+            <!-- Statistics box -->
+            <rect x="10" y="220" width="180" height="110" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="100" y="240" text-anchor="middle" font-size="12" fill="#000" font-weight="bold">
+                For K=23
+            </text>
+            <text x="20" y="260" font-size="10" fill="#000">
+                Total paths: 254
+            </text>
+            <text x="20" y="278" font-size="10" fill="#000">
+                WIN paths: 253
+            </text>
+            <text x="20" y="296" font-size="10" fill="#000">
+                LOSE paths: 1
+            </text>
+            <text x="20" y="314" font-size="10" fill="#000" font-weight="bold">
+                P(collision) ≈ 0.507
+            </text>
+            
+            <!-- Key insight box -->
+            <rect x="10" y="350" width="180" height="150" fill="white" stroke="#000" stroke-width="1.5"/>
+            <text x="100" y="370" text-anchor="middle" font-size="11" fill="#000" font-weight="bold">
+                Key Insight
+            </text>
+            <text x="20" y="390" font-size="9" fill="#000">
+                • Each condition checks
+            </text>
+            <text x="24" y="404" font-size="9" fill="#000">
+                one pair (i,j) for
+            </text>
+            <text x="24" y="418" font-size="9" fill="#000">
+                equality
+            </text>
+            <text x="20" y="436" font-size="9" fill="#000">
+                • First match → WIN
+            </text>
+            <text x="20" y="454" font-size="9" fill="#000">
+                • All distinct → LOSE
+            </text>
+            <text x="20" y="472" font-size="9" fill="#000">
+                • Loop unrolled into
+            </text>
+            <text x="24" y="486" font-size="9" fill="#000">
+                if/elif/else chain
+            </text>
+            
+            <!-- Caption -->
+            <text x="500" y="680" text-anchor="middle" font-size="12" fill="#000" font-style="italic">
+                Unrolled loop structure: each comparison creates a binary branch.
+            </text>
+            <text x="500" y="700" text-anchor="middle" font-size="12" fill="#000" font-style="italic">
+                Tree grows to (K choose 2) + 1 terminal paths for K people.
+            </text>
+            <text x="500" y="720" text-anchor="middle" font-size="12" fill="#000" font-style="italic">
+                Symbolic execution enumerates all 254 paths for K=23.
+            </text>
+        </svg>
+    </div>
+</body>
+</html>

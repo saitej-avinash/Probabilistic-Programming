@@ -32,7 +32,7 @@ def isProduct(a, b, c, k):
 a = [[1, 2], [3, 4]]
 b = [[1, 0], [0, 1]]
 c = [[1, 2], [1, 4]]  # Incorrect product
-k = 1
+k = 2
 count = 0
 x = 1000  # Number of trials
 
